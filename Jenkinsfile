@@ -36,11 +36,12 @@ pipeline {
         }
 
         stage('Approval') {
+            input {
+                message "Deploy to production?"
+                ok "Deploy"
+            }
             steps {
-                input {
-                    message "Deploy to production?"
-                    ok "Deploy"
-                }
+                echo "Deployment approved!"
             }
         }
 
