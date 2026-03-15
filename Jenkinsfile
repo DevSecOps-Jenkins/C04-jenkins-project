@@ -1,12 +1,11 @@
 pipeline {
     agent any
-    stages {
-
     parameters {
         choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select deployment environment')
         string(name: 'APP_NAME', defaultValue: 'jenkins-demo', description: 'Application name')
     }
 
+    stages {
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/DevSecOps-Jenkins/C04-jenkins-project.git', branch: 'main'
