@@ -19,5 +19,15 @@ pipeline {
                 sh "whoami"
             }
         }
+        stage('Use Credentials') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'app-login', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh '''
+                        echo "Username is $USERNAME"
+                        echo "Password is $PASSWORD"
+                    '''
+                }
+            }
+        }
     }
 }
