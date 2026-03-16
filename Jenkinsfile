@@ -6,6 +6,10 @@ pipeline {
         string(name: 'APP_NAME', defaultValue: 'jenkins-demo', description: 'Application name')
     }
 
+    environment {
+        SERVER_IP = credentials('prod-server-ip')
+    }
+
     stages {
 
         stage('Checkout') {
@@ -50,6 +54,31 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'app-login', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh '''
                         echo "Username is $USERNAME"
+                    '''
+                }
+            }
+        }
+
+        stage('Package Code') {
+            steps {
+                sh "zip -r myapp.zip ./* -x '**.git**'"
+                sh "ls -lart"
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'USER')]) {
+                    sh '''
+                    scp -i $SSH_KEY -o StrictHostKeyChecking=no myapp.zip ${USER}@${SERVER_IP}:/tmp/
+
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${USER}@${SERVER_IP} << EOF
+                    unzip -o /tmp/myapp.zip -d /var/www/html/python-app/
+                    cd /var/www/html/python-app
+                    source venv/bin/activate
+                    pip install -r requirements.txt
+                    sudo systemctl restart python-app.service
+EOF
                     '''
                 }
             }
